@@ -29,11 +29,11 @@
 
             services.AddOptions();
             services.Configure(setupAction);
-            services.Add(ServiceDescriptor.Singleton<IAdvancedDistributedCache, AdvancedRedisCache>());
-            services.Add(ServiceDescriptor.Singleton<IDistributedCache>(r =>
+            services.AddSingleton<IAdvancedDistributedCache, AdvancedRedisCache>();
+            services.AddSingleton<IDistributedCache>(r =>
             {
                 return r.GetRequiredService<IAdvancedDistributedCache>();
-            }));
+            });
 
             return services;
         }
