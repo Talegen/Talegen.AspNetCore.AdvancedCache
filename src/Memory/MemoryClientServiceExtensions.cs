@@ -13,38 +13,31 @@
  * limitations under the License.
  *
 */
-namespace Talegen.AspNetCore.AdvancedCache.Redis
+namespace Talegen.AspNetCore.AdvancedCache.Memory
 {
     using System;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
-    /// This class is used for adding Distributed Cache according to configuration
+    /// Contains extension methods to add Memory distributed caching services to the specified <see cref="IServiceCollection" />.
     /// </summary>
-    public static class RedisClientServiceExtensions
+    public static class MemoryClientServiceExtensions
     {
         /// <summary>
-        /// Adds Redis distributed caching services to the specified <see cref="IServiceCollection" />.
+        /// Adds Memory distributed caching services to the specified <see cref="IServiceCollection" />.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-        /// <param name="setupAction">An <see cref="Action{RedisCacheOptions}" /> to configure the provided <see cref="RedisCacheOptions" />.</param>
         /// <returns>The <see cref="IServiceCollection" /> so that additional calls can be chained.</returns>
-        public static IServiceCollection AddRedisClientCache(this IServiceCollection services, Action<RedisClientCacheOptions> setupAction)
+        public static IServiceCollection AddMemoryClientCache(this IServiceCollection services)
         {
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (setupAction == null)
-            {
-                throw new ArgumentNullException(nameof(setupAction));
-            }
-
             services.AddOptions();
-            services.Configure(setupAction);
-            services.AddSingleton<IAdvancedDistributedCache, AdvancedRedisCache>();
+            services.AddSingleton<IAdvancedDistributedCache, AdvancedMemoryCache>();
             services.AddSingleton<IDistributedCache>(r =>
             {
                 return r.GetRequiredService<IAdvancedDistributedCache>();
