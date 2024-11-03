@@ -348,6 +348,51 @@
             return await this.Cache.FindKeysAsync(pattern, token: cancellationToken).ConfigureAwait(false);
         }
 
+
+        /// <summary>
+        /// Removes all the keys.
+        /// </summary>
+        /// <param name="keys">Contains the keys to remove.</param>
+        public void RemoveRange(string[] keys)
+        {
+            if (keys != null)
+            {
+                RedisKey[] redisKeys = new RedisKey[keys.Count()];
+                int i = 0;
+                foreach (var key in keys)
+                {
+                    redisKeys[i++] = new RedisKey(key);
+                }
+
+                if (redisKeys.Length > 0)
+                {
+                    this.Cache.KeyDelete(redisKeys);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes all the keys.
+        /// </summary>
+        /// <param name="keys">Contains the keys to remove.</param>
+        public async Task RemoveRangeAsync(string[] keys)
+        {
+            if (keys != null)
+            {
+                RedisKey[] redisKeys = new RedisKey[keys.Count()];
+                int i = 0;
+                foreach (var key in keys)
+                {
+                    redisKeys[i++] = new RedisKey(key);
+                }
+
+                if (redisKeys.Length > 0)
+                {
+                    await this.Cache.KeyDeleteAsync(redisKeys);
+                }
+            }
+        }
+
         /// <summary>
         /// Removes the value with the given key.
         /// </summary>
@@ -363,17 +408,7 @@
 
             var keys = this.Cache.FindKeys(pattern);
 
-            if (keys != null)
-            {
-                RedisKey[] redisKeys = new RedisKey[keys.Count()];
-                int i = 0;
-                foreach (var key in keys)
-                {
-                    redisKeys[i++] = new RedisKey(key);
-                }
-
-                this.Cache.KeyDelete(redisKeys);
-            }
+            this.RemoveRange(keys.ToArray());
         }
 
         /// <summary>
@@ -393,17 +428,7 @@
 
             var keys = await this.Cache.FindKeysAsync(pattern);
 
-            if (keys != null)
-            {
-                RedisKey[] redisKeys = new RedisKey[keys.Count()];
-                int i = 0;
-                foreach (var key in keys)
-                {
-                    redisKeys[i++] = new RedisKey(key);
-                }
-
-                await this.Cache.KeyDeleteAsync(redisKeys);
-            }
+            await this.RemoveRangeAsync(keys.ToArray());
         }
         #endregion
 

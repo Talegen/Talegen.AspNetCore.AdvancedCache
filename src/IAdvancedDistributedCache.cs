@@ -43,6 +43,18 @@ namespace Talegen.AspNetCore.AdvancedCache
         Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Removes all the keys.
+        /// </summary>
+        /// <param name="keys">Contains the keys to remove.</param>
+        void RemoveRange(string[] keys);
+
+        /// <summary>
+        /// Removes all the keys.
+        /// </summary>
+        /// <param name="keys">Contains the keys to remove.</param>
+        Task RemoveRangeAsync(string[] keys);
+
+        /// <summary>
         /// Removes the value with the given key.
         /// </summary>
         /// <param name="pattern">A string identifying the requested value.</param>
