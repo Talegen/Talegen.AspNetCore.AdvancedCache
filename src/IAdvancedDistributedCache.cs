@@ -38,8 +38,22 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// This method is used to find one or more cache keys that match a specified pattern.
         /// </summary>
         /// <param name="pattern">Contains the key search pattern.</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <param name="cancellationToken">Contains an optional cancellation token.</param>
         /// <returns>Returns an enumerable list of key names matching the pattern.</returns>
-        Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken token = default);
+        Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Removes the value with the given key.
+        /// </summary>
+        /// <param name="pattern">A string identifying the requested value.</param>
+        void RemovePattern(string pattern);
+
+        /// <summary>
+        /// Removes the value with the given key.
+        /// </summary>
+        /// <param name="pattern">A string identifying the requested value.</param>
+        /// <param name="cancellationToken">Optional. The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
+        Task RemovePatternAsync(string pattern, CancellationToken cancellationToken = default);
     }
 }

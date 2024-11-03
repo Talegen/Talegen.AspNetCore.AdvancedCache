@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Caching.Distributed;
@@ -189,7 +190,7 @@
 
             DateTimeOffset creationTime = DateTimeOffset.UtcNow;
             DateTimeOffset? absoluteExpiration = GetAbsoluteExpiration(creationTime, options);
-            this.cache.ScriptEvaluate(SetScript, new RedisKey[] { this.instance + key },
+            this.Cache.ScriptEvaluate(SetScript, new RedisKey[] { this.instance + key },
                 new RedisValue[]
                 {
                         absoluteExpiration?.Ticks ?? NotPresent,
@@ -231,7 +232,7 @@
             DateTimeOffset creationTime = DateTimeOffset.UtcNow;
             DateTimeOffset? absoluteExpiration = GetAbsoluteExpiration(creationTime, options);
 
-            await this.cache.ScriptEvaluateAsync(SetScript, new RedisKey[] { this.instance + key },
+            await this.Cache.ScriptEvaluateAsync(SetScript, new RedisKey[] { this.instance + key },
                 new RedisValue[]
                 {
                         absoluteExpiration?.Ticks ?? NotPresent,
@@ -286,9 +287,7 @@
 
             this.Connect();
 
-            this.cache.KeyDelete(this.instance + key);
-
-            // TODO: Error handling
+            this.Cache.KeyDelete(this.instance + key);
         }
 
         /// <summary>
@@ -306,9 +305,7 @@
 
             await this.ConnectAsync(token);
 
-            await this.cache.KeyDeleteAsync(this.instance + key);
-
-            // TODO: Error handling
+            await this.Cache.KeyDeleteAsync(this.instance + key);
         }
 
         #endregion
@@ -336,11 +333,10 @@
         /// <summary>
         /// This method is used to find one or more cache keys that match a specified pattern.
         /// </summary>
-        /// <param name="cache">Contains the cache database to search.</param>
         /// <param name="pattern">Contains the key search pattern.</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <param name="cancellationToken">Contains an optional cancellation token.</param>
         /// <returns>Returns an enumerable list of key names matching the pattern.</returns>
-        public async Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken token = default)
+        public async Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken cancellationToken = default)
         {
             if (pattern == null)
             {
@@ -349,9 +345,66 @@
 
             await this.ConnectAsync().ConfigureAwait(false);
 
-            return await this.Cache.FindKeysAsync(pattern, token: token).ConfigureAwait(false);
+            return await this.Cache.FindKeysAsync(pattern, token: cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Removes the value with the given key.
+        /// </summary>
+        /// <param name="pattern">A string identifying the requested value.</param>
+        public void RemovePattern(string pattern)
+        {
+            if (pattern == null)
+            {
+                throw new ArgumentNullException(nameof(pattern));
+            }
+
+            this.Connect();
+
+            var keys = this.Cache.FindKeys(pattern);
+
+            if (keys != null)
+            {
+                RedisKey[] redisKeys = new RedisKey[keys.Count()];
+                int i = 0;
+                foreach (var key in keys)
+                {
+                    redisKeys[i++] = new RedisKey(key);
+                }
+
+                this.Cache.KeyDelete(redisKeys);
+            }
+        }
+
+        /// <summary>
+        /// Removes the value with the given key.
+        /// </summary>
+        /// <param name="pattern">A string identifying the requested value.</param>
+        /// <param name="cancellationToken">Optional. The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+        /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public async Task RemovePatternAsync(string pattern, CancellationToken cancellationToken = default)
+        {
+            if (pattern == null)
+            {
+                throw new ArgumentNullException(nameof(pattern));
+            }
+
+            await this.ConnectAsync();
+
+            var keys = await this.Cache.FindKeysAsync(pattern);
+
+            if (keys != null)
+            {
+                RedisKey[] redisKeys = new RedisKey[keys.Count()];
+                int i = 0;
+                foreach (var key in keys)
+                {
+                    redisKeys[i++] = new RedisKey(key);
+                }
+
+                await this.Cache.KeyDeleteAsync(redisKeys);
+            }
+        }
         #endregion
 
         #region IDisposeable Methods
