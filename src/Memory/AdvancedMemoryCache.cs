@@ -247,8 +247,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="field Name">Contains the value field Name.</param>
         /// <param name="value">Contains the value to increment by.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
         /// <returns>Returns the incremented value.</returns>
-        public Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1)
+        public Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
         {
             long result = 0;
             if (memoryDictionary.ContainsKey(hashKey))
@@ -270,8 +271,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to decrement by.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
         /// <returns>Returns the decremented value.</returns>
-        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1)
+        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
         {
             long result = 0;
             if (memoryDictionary.ContainsKey(hashKey))

@@ -90,10 +90,11 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// This method is used to increment a value in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
-        /// <param name="field Name">Contains the value field Name.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to increment by.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
         /// <returns>Returns the incremented value.</returns>
-        Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1);
+        Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null);
 
         /// <summary>
         /// This method is used to decrement a value in the cache hash bucket.
@@ -101,8 +102,9 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to decrement by.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
         /// <returns>Returns the decremented value.</returns>
-        Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1);
+        Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null);
 
         /// <summary>
         /// This method is used to get all values in the cache hash bucket.

@@ -522,8 +522,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to increment by.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
         /// <returns>Returns the incremented value.</returns>
-        public async Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1)
+        public async Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
         {
             if (hashKey == null)
             {
@@ -536,7 +537,15 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
 
             await this.ConnectAsync();
-            return await this.Cache.HashIncrementAsync(hashKey, fieldName, value);
+
+            var result = await this.Cache.HashIncrementAsync(hashKey, fieldName, value);
+
+            if (expiration.HasValue)
+            {
+                await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -545,8 +554,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to decrement by.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
         /// <returns>Returns the decremented value.</returns>
-        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1)
+        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
         {
             if (hashKey == null)
             {
@@ -559,8 +569,15 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
 
             await this.ConnectAsync();
-            
-            return await this.Cache.HashDecrementAsync(hashKey, fieldName, value);
+
+            var result = await this.Cache.HashDecrementAsync(hashKey, fieldName, value);
+
+            if (expiration.HasValue)
+            {
+                await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -586,7 +603,6 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             
             return result;
         }
-
 
         /// <summary>
         /// This method is used to set a key expiration.
