@@ -512,7 +512,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             {
                 await this.Cache.KeyExpireAsync(hashKey, expiration);
             }
-            
+
             return result;
         }
 
@@ -559,7 +559,79 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
 
             await this.ConnectAsync();
+            
             return await this.Cache.HashDecrementAsync(hashKey, fieldName, value);
+        }
+
+        /// <summary>
+        /// This method is used to get all values in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key</param>
+        /// <returns>Returns a dictionary of field and values.</returns>
+        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            await this.ConnectAsync();
+            Dictionary<string, string> result = new Dictionary<string, string>();
+
+            HashEntry[] entries = await this.Cache.HashGetAllAsync(hashKey);
+
+            if (entries != null && entries.Length > 0)
+            {
+                result = entries.ToDictionary(e => e.Name.ToString(), e => e.Value.ToString());
+            }
+            
+            return result;
+        }
+
+
+        /// <summary>
+        /// This method is used to set a key expiration.
+        /// </summary>
+        /// <param name="hashKey">Contains the key to expire.</param>
+        /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        public async Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            await this.ConnectAsync();
+            return await this.Cache.KeyExpireAsync(hashKey, expiration);
+        }
+
+        /// <summary>
+        /// This method is used to set a field expiration.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the field name.</param>
+        /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        public async Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            if (fieldNames == null)
+            {
+                throw new ArgumentNullException(nameof(fieldNames));
+            }
+
+            await this.ConnectAsync();
+            RedisValue[] redisFieldNames = new RedisValue[fieldNames.Length];
+            for (int i = 0; i < fieldNames.Length; i++)
+            {
+                redisFieldNames[i] = fieldNames[i];
+            }
+
+            var results = await this.Cache.HashFieldExpireAsync(hashKey, redisFieldNames, expiration);
+
+            return results?.Length > 0 && results[0] > 0;
         }
         #endregion
 

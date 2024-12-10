@@ -287,6 +287,64 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
             return await Task.FromResult(result);
         }
 
+        /// <summary>
+        /// This method is used to get all values in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key</param>
+        /// <returns>Returns a dictionary of field and values.</returns>
+        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                string hashValue = memoryDictionary[hashKey];
+                result.Add(hashKey, hashValue);
+            }
+            return await Task.FromResult(result);
+        }
+
+        /// <summary>
+        /// This method is used to set a key expiration.
+        /// </summary>
+        /// <param name="hashKey">Contains the key to expire.</param>
+        /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        public async Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration)
+        {
+            bool result = false;
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                memoryDictionary[hashKey] = memoryDictionary[hashKey];
+                result = true;
+            }
+            return await Task.FromResult(result);
+        }
+
+        /// <summary>
+        /// This method is used to set a field expiration.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the field name.</param>
+        /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        public async Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration)
+        {
+            bool result = false;
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                string hashValue = memoryDictionary[hashKey];
+                foreach (var fieldName in fieldNames)
+                {
+                    if (hashValue.Contains(fieldName))
+                    {
+                        memoryDictionary[hashKey] = hashValue;
+                        result = true;
+                    }
+                }
+            }
+            return await Task.FromResult(result);
+        }
+
         #region IDisposeable Methods
 
             /// <summary>

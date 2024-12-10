@@ -103,5 +103,29 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="value">Contains the value to decrement by.</param>
         /// <returns>Returns the decremented value.</returns>
         Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1);
+
+        /// <summary>
+        /// This method is used to get all values in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key</param>
+        /// <returns>Returns a dictionary of field and values.</returns>
+        Task<Dictionary<string, string>> HashGetAllAsync(string hashKey);
+
+        /// <summary>
+        /// This method is used to set a key expiration.
+        /// </summary>
+        /// <param name="hashKey">Contains the key to expire.</param>
+        /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration);
+
+        /// <summary>
+        /// This method is used to set a field expiration.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldNames">Contains an array of field names to set expiration.</param>
+        /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration);
     }
 }

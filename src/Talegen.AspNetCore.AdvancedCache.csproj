@@ -6,7 +6,7 @@
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Talegen ASP.net Core Advanced Cache Library</Title>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <Authors>Talegen, LLC</Authors>
     <Description>A simple advanced IDistributedCache extension implementing Redis cache client.</Description>
     <Copyright>Copyright (c) Talegen, LLC.</Copyright>
