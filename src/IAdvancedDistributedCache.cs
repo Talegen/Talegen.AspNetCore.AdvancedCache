@@ -20,6 +20,7 @@ namespace Talegen.AspNetCore.AdvancedCache
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Caching.Distributed;
+    using StackExchange.Redis;
 
     /// <summary>
     /// This interface provides additional enhancements to the base distributed cache interface.
@@ -66,5 +67,41 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="cancellationToken">Optional. The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
         Task RemovePatternAsync(string pattern, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// This method is used to get a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <returns>Returns a string representation of the value.</returns>
+        Task<string> HashGetAsync(string hashKey, string fieldName);
+
+        /// <summary>
+        /// This method is used to set a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="value">Contains the value.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <returns>Returns teh value set.</returns>
+        Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null);
+
+        /// <summary>
+        /// This method is used to increment a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="field Name">Contains the value field Name.</param>
+        /// <param name="value">Contains the value to increment by.</param>
+        /// <returns>Returns the incremented value.</returns>
+        Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1);
+
+        /// <summary>
+        /// This method is used to decrement a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="value">Contains the value to decrement by.</param>
+        /// <returns>Returns the decremented value.</returns>
+        Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1);
     }
 }

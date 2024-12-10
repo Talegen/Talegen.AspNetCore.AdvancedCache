@@ -195,11 +195,103 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
             return Task.CompletedTask;
         }
 
-        #region IDisposeable Methods
 
         /// <summary>
-        /// This method is used to dispose of the internal disposable objects.
+        /// This method is used to get a value in the cache hash bucket.
         /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <returns>Returns a string representation of the value.</returns>
+        public async Task<string> HashGetAsync(string hashKey, string fieldName)
+        {
+            string result = string.Empty;
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                string hashValue = memoryDictionary[hashKey];
+                if (hashValue.Contains(fieldName))
+                {
+                    result = hashValue;
+                }
+            }
+            return await Task.FromResult(result);
+        }
+
+        /// <summary>
+        /// This method is used to set a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="value">Contains the value.</param>
+        /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <returns>Returns teh value set.</returns>
+        public async Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null)
+        {
+            bool result = false;
+            
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                string hashValue = memoryDictionary[hashKey];
+                if (hashValue.Contains(fieldName))
+                {
+                    memoryDictionary[hashKey] = value;
+                    result = true;
+                }
+            }
+         
+            return await Task.FromResult(result);
+        }
+
+        /// <summary>
+        /// This method is used to increment a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="field Name">Contains the value field Name.</param>
+        /// <param name="value">Contains the value to increment by.</param>
+        /// <returns>Returns the incremented value.</returns>
+        public Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1)
+        {
+            long result = 0;
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                string hashValue = memoryDictionary[hashKey];
+                if (hashValue.Contains(fieldName))
+                {
+                    long.TryParse(hashValue, out result);
+                    result += value;
+                    memoryDictionary[hashKey] = result.ToString();
+                }
+            }
+            return Task.FromResult(result);
+        }
+
+        /// <summary>
+        /// This method is used to decrement a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="value">Contains the value to decrement by.</param>
+        /// <returns>Returns the decremented value.</returns>
+        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1)
+        {
+            long result = 0;
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                string hashValue = memoryDictionary[hashKey];
+                if (hashValue.Contains(fieldName))
+                {
+                    long.TryParse(hashValue, out result);
+                    result -= value;
+                    memoryDictionary[hashKey] = result.ToString();
+                }
+            }
+            return await Task.FromResult(result);
+        }
+
+        #region IDisposeable Methods
+
+            /// <summary>
+            /// This method is used to dispose of the internal disposable objects.
+            /// </summary>
         public void Dispose()
         {
             Dispose(true);

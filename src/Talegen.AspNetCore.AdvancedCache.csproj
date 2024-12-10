@@ -6,7 +6,7 @@
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Talegen ASP.net Core Advanced Cache Library</Title>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <Authors>Talegen, LLC</Authors>
     <Description>A simple advanced IDistributedCache extension implementing Redis cache client.</Description>
     <Copyright>Copyright (c) Talegen, LLC.</Copyright>
@@ -14,7 +14,7 @@
     <RepositoryUrl>https://github.com/Talegen/Talegen.AspNetCore.AdvancedCache</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>Redis;Cache</PackageTags>
-    <PackageReleaseNotes>Added memory cache support as a backup.</PackageReleaseNotes>
+    <PackageReleaseNotes>Adding new methods to expose some Redis client hash methods.</PackageReleaseNotes>
     <NeutralLanguage>en</NeutralLanguage>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>

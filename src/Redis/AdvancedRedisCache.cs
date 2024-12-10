@@ -18,6 +18,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.Caching.Distributed;
@@ -341,7 +342,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
 
             this.Connect();
-
+            
             return this.Cache.FindKeys(pattern);
         }
 
@@ -445,13 +446,128 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             await this.RemoveRangeAsync(keys.ToArray());
         }
-        #endregion
 
-        #region IDisposeable Methods
 
         /// <summary>
-        /// This method is used to dispose of the internal disposable objects.
+        /// This method is used to get a value in the cache hash bucket.
         /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <returns>Returns a string representation of the value.</returns>
+        public async Task<string> HashGetAsync(string hashKey, string fieldName)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            
+            if (fieldName == null)
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+
+            string? result = null;
+
+            await this.ConnectAsync();
+
+            RedisValue redisValue = await this.Cache.HashGetAsync(hashKey, fieldName);
+
+            if (!redisValue.IsNullOrEmpty)
+            {
+                result = Encoding.UTF8.GetString(redisValue);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// This method is used to set a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value key.</param>
+        /// <param name="value">Contains the value.</param>
+        /// <returns>Returns teh value set.</returns>
+        public async Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+
+            if (fieldName == null)
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+
+            if (expiration == null)
+            {
+                expiration = TimeSpan.FromHours(1);
+            }
+
+            await this.ConnectAsync();
+            bool result = await this.Cache.HashSetAsync(hashKey, fieldName, value);
+            
+            // if this was new, set the expiration
+            if (result)
+            {
+                await this.Cache.KeyExpireAsync(hashKey, expiration);
+            }
+            
+            return result;
+        }
+
+        /// <summary>
+        /// This method is used to increment a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="value">Contains the value to increment by.</param>
+        /// <returns>Returns the incremented value.</returns>
+        public async Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            
+            if (fieldName == null)
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+
+            await this.ConnectAsync();
+            return await this.Cache.HashIncrementAsync(hashKey, fieldName, value);
+        }
+
+        /// <summary>
+        /// This method is used to decrement a value in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="value">Contains the value to decrement by.</param>
+        /// <returns>Returns the decremented value.</returns>
+        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+
+            if (fieldName == null)
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+
+            await this.ConnectAsync();
+            return await this.Cache.HashDecrementAsync(hashKey, fieldName, value);
+        }
+        #endregion
+
+            #region IDisposeable Methods
+
+            /// <summary>
+            /// This method is used to dispose of the internal disposable objects.
+            /// </summary>
         public void Dispose()
         {
             Dispose(true);
