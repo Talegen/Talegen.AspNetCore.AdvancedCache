@@ -110,6 +110,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// Initializes a new instance of the <see cref="AdvancedRedisCache" /> class.
         /// </summary>
         /// <param name="optionsAccessor">Contains the Redis client cache options accessor.</param>
+        /// <param name="minSupportedCommands">Contains the minimum supported server commands.</param>
         public AdvancedRedisCache(IOptions<RedisClientCacheOptions> optionsAccessor)
         {
             if (optionsAccessor == null)
@@ -540,7 +541,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             var result = await this.Cache.HashIncrementAsync(hashKey, fieldName, value);
 
-            if (expiration.HasValue)
+            if (expiration.HasValue && this.options.MinimumServerCommands == RedisMinimumServerCommands.SevenTwo)
             {
                 await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
             }
@@ -572,7 +573,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             var result = await this.Cache.HashDecrementAsync(hashKey, fieldName, value);
 
-            if (expiration.HasValue)
+            if (expiration.HasValue && this.options.MinimumServerCommands == RedisMinimumServerCommands.SevenTwo)
             {
                 await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
             }
@@ -627,6 +628,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="fieldName">Contains the field name.</param>
         /// <param name="expiration">Contains the timespan for expiration.</param>
         /// <returns>Returns a value indicating success.</returns>
+        /// <exception cref="NotSupportedException">HashFieldExpireAsync is not supported on Redis versions less than 7.2.</exception>"
         public async Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration)
         {
             if (hashKey == null)
@@ -638,20 +640,30 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 throw new ArgumentNullException(nameof(fieldNames));
             }
 
-            await this.ConnectAsync();
-            RedisValue[] redisFieldNames = new RedisValue[fieldNames.Length];
-            for (int i = 0; i < fieldNames.Length; i++)
+            bool result = false;
+
+            if (this.options.MinimumServerCommands == RedisMinimumServerCommands.SevenTwo)
             {
-                redisFieldNames[i] = fieldNames[i];
+                await this.ConnectAsync();
+                RedisValue[] redisFieldNames = new RedisValue[fieldNames.Length];
+                for (int i = 0; i < fieldNames.Length; i++)
+                {
+                    redisFieldNames[i] = fieldNames[i];
+                }
+
+                var results = await this.Cache.HashFieldExpireAsync(hashKey, redisFieldNames, expiration);
+                result = results?.Length > 0 && results[0] > 0;
+            }
+            else
+            {
+                throw new NotSupportedException("HashFieldExpireAsync is not supported on Redis versions less than 7.2.");
             }
 
-            var results = await this.Cache.HashFieldExpireAsync(hashKey, redisFieldNames, expiration);
-
-            return results?.Length > 0 && results[0] > 0;
+            return result;
         }
         #endregion
 
-            #region IDisposeable Methods
+        #region IDisposeable Methods
 
             /// <summary>
             /// This method is used to dispose of the internal disposable objects.

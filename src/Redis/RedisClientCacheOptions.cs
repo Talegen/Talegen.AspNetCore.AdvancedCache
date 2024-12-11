@@ -19,6 +19,22 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
     using StackExchange.Redis;
 
     /// <summary>
+    /// Contains an enumeration of the minimum server commands supported by the Redis server.
+    /// </summary>
+    public enum RedisMinimumServerCommands
+    {
+        /// <summary>
+        /// Supports 6.x versions of Redis.
+        /// </summary>
+        Six,
+
+        /// <summary>
+        /// Supports 7.2+ versions of Redis.
+        /// </summary>
+        SevenTwo
+    }
+
+    /// <summary>
     /// Configuration options for the <see cref="RedisClientCache" /> class.
     /// </summary>
     public class RedisClientCacheOptions : IOptions<RedisClientCacheOptions>
@@ -37,6 +53,11 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// The Redis instance name.
         /// </summary>
         public string InstanceName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the minimum server commands supported by the Redis server.
+        /// </summary>
+        public RedisMinimumServerCommands MinimumServerCommands { get; set; } = RedisMinimumServerCommands.Six;
 
         /// <summary>
         /// Gets the instance of the Redis cache options
