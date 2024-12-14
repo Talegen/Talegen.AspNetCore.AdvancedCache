@@ -374,6 +374,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         {
             if (keys != null)
             {
+                this.Connect();
                 RedisKey[] redisKeys = new RedisKey[keys.Count()];
                 int i = 0;
                 foreach (var key in keys)
@@ -396,6 +397,8 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         {
             if (keys != null)
             {
+                await this.ConnectAsync().ConfigureAwait(false);
+
                 RedisKey[] redisKeys = new RedisKey[keys.Count()];
                 int i = 0;
                 foreach (var key in keys)
