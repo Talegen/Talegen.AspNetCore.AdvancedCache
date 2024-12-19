@@ -544,7 +544,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             var result = await this.Cache.HashIncrementAsync(hashKey, fieldName, value);
 
-            if (expiration.HasValue && this.options.MinimumServerCommands == RedisMinimumServerCommands.SevenTwo)
+            if (expiration.HasValue)
             {
                 await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
             }
@@ -576,7 +576,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             var result = await this.Cache.HashDecrementAsync(hashKey, fieldName, value);
 
-            if (expiration.HasValue && this.options.MinimumServerCommands == RedisMinimumServerCommands.SevenTwo)
+            if (expiration.HasValue)
             {
                 await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
             }
@@ -659,7 +659,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
             else
             {
-                throw new NotSupportedException("HashFieldExpireAsync is not supported on Redis versions less than 7.2.");
+                await this.KeyExpireAsync(hashKey, expiration);
             }
 
             return result;
