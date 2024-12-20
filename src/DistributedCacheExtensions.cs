@@ -15,12 +15,12 @@
 */
 namespace Talegen.AspNetCore.AdvancedCache
 {
-    using Microsoft.Extensions.Caching.Distributed;
-    using Newtonsoft.Json;
     using System;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Caching.Distributed;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// This class is used to define distributed cache extensions.
@@ -61,11 +61,16 @@ namespace Talegen.AspNetCore.AdvancedCache
                 throw new ArgumentNullException(nameof(cache));
             }
 
-            var options = cacheOptions ?? new CacheOptions();
+            DistributedCacheEntryOptions options = null;
 
-            return SetAsync(cache, key, value, new DistributedCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(options.SlidingWindowMinutes))
-                .SetAbsoluteExpiration(TimeSpan.FromHours(options.AbsoluteExpirationHours)));
+            if (cacheOptions != null)
+            {
+                options = new DistributedCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromMinutes(cacheOptions.SlidingWindowMinutes))
+                .SetAbsoluteExpiration(TimeSpan.FromHours(cacheOptions.AbsoluteExpirationHours));
+            }
+
+            return SetAsync(cache, key, value, options);
         }
 
         /// <summary>
@@ -153,13 +158,6 @@ namespace Talegen.AspNetCore.AdvancedCache
                 throw new ArgumentNullException(nameof(cache));
             }
 
-            if (options == null)
-            {
-                options = new DistributedCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromMinutes(30))
-                .SetAbsoluteExpiration(TimeSpan.FromHours(1));
-            }
-            
             if (cache.TryGetValue(key, out T value) && value != null)
             {
                 return value;
