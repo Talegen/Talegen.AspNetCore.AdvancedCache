@@ -451,7 +451,6 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             await this.RemoveRangeAsync(keys.ToArray());
         }
 
-
         /// <summary>
         /// This method is used to get a value in the cache hash bucket.
         /// </summary>
@@ -482,6 +481,29 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// This method is used to check if a field exists in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <returns>Returns a value indicating whether the field exists.</returns>
+        public async Task<bool> HashFieldExistsAsync(string hashKey, string fieldName)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+         
+            if (fieldName == null)
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+            
+            await this.ConnectAsync();
+            
+            return await this.Cache.HashExistsAsync(hashKey, fieldName);
         }
 
         /// <summary>

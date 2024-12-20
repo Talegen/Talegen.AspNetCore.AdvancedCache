@@ -69,6 +69,14 @@ namespace Talegen.AspNetCore.AdvancedCache
         Task RemovePatternAsync(string pattern, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// This method is used to check if a field exists in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <returns>Returns a value indicating whether the field exists.</returns>
+        Task<bool> HashFieldExistsAsync(string hashKey, string fieldName);
+
+        /// <summary>
         /// This method is used to get a value in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
