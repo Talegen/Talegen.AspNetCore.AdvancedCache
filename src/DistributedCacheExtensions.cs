@@ -91,6 +91,12 @@ namespace Talegen.AspNetCore.AdvancedCache
             }
 
             var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(value, serializerOptions));
+
+            if (options == null)
+            {
+                options = new DistributedCacheEntryOptions();
+            }
+
             return cache.SetAsync(key, bytes, options, cancellationToken);
         }
 
