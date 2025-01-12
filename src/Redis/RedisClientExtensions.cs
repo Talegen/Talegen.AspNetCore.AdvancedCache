@@ -48,7 +48,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         public static void SetJson(this IDistributedCache cache, string key, object item, DistributedCacheEntryOptions options = null)
         {
             string content = JsonConvert.SerializeObject(item);
-            cache.SetString(key, content, options);
+            cache.SetString(key, content, options ?? new DistributedCacheEntryOptions());
         }
 
         /// <summary>
@@ -60,10 +60,10 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="options">Contains an optional cache entry options.</param>
         /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns></returns>
-        public static async Task SetJsonAsync(this IDistributedCache cache, string key, object item, DistributedCacheEntryOptions options = null, CancellationToken token = default)
+        public static async Task SetJsonAsync(this IDistributedCache cache, string key, object item, DistributedCacheEntryOptions? options = null, JsonSerializerSettings? settings = null, CancellationToken token = default)
         {
-            string content = JsonConvert.SerializeObject(item);
-            await cache.SetStringAsync(key, content, options, token);
+            string content = JsonConvert.SerializeObject(item, settings);
+            await cache.SetStringAsync(key, content, options ?? new DistributedCacheEntryOptions(), token);
         }
 
         /// <summary>

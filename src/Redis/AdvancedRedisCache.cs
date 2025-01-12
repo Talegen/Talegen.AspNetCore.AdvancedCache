@@ -688,7 +688,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         }
         #endregion
 
-            #region IDisposeable Methods
+        #region IDisposeable Methods
 
             /// <summary>
             /// This method is used to dispose of the internal disposable objects.
