@@ -28,7 +28,7 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <summary>
         /// Gets or sets the absolute expiration hours.
         /// </summary>
-        public int AbsoluteExpirationHours { get; set; } = 1;
+        public int AbsoluteExpirationMinutes { get; set; } = 20;
 
     }
 }

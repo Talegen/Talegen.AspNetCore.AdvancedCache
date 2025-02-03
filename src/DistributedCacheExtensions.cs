@@ -67,7 +67,7 @@ namespace Talegen.AspNetCore.AdvancedCache
             {
                 options = new DistributedCacheEntryOptions()
                 .SetSlidingExpiration(TimeSpan.FromMinutes(cacheOptions.SlidingWindowMinutes))
-                .SetAbsoluteExpiration(TimeSpan.FromHours(cacheOptions.AbsoluteExpirationHours));
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(cacheOptions.AbsoluteExpirationMinutes));
             }
 
             return SetAsync(cache, key, value, options);
