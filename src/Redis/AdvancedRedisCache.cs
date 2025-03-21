@@ -162,12 +162,12 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             return this.GetAndRefresh(key, getData: true);
         }
 
-        //// <summary>
+        /// <summary>
         /// This method gets a byte array of data from the cache.
         /// </summary>
         /// <param name="key">Contains the key to find.</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
-        /// <returns></returns>
+        /// <param name="cancellationToken">Contains an optional cancellation token.</param>
+        /// <returns>Returns the data found.</returns>
         public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
         {
             if (key == null)
@@ -175,9 +175,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 throw new ArgumentNullException(nameof(key));
             }
 
-            token.ThrowIfCancellationRequested();
-
-            return await this.GetAndRefreshAsync(key, getData: true, token: token);
+            return await this.GetAndRefreshAsync(key, true, token);
         }
 
         /// <summary>
@@ -286,9 +284,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 throw new ArgumentNullException(nameof(key));
             }
 
-            token.ThrowIfCancellationRequested();
-
-            await this.GetAndRefreshAsync(key, getData: false, token: token);
+            await this.GetAndRefreshAsync(key, getData: false, cancellationToken: token);
         }
 
         /// <summary>
@@ -351,27 +347,29 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// This method is used to find one or more cache keys that match a specified pattern.
         /// </summary>
         /// <param name="pattern">Contains the key search pattern.</param>
-        /// <param name="cancellationToken">Contains an optional cancellation token.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns an enumerable list of key names matching the pattern.</returns>
-        public async Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken token = default)
         {
             if (pattern == null)
             {
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            await this.ConnectAsync().ConfigureAwait(false);
+            await this.ConnectAsync(token).ConfigureAwait(false);
 
-            return await this.Cache.FindKeysAsync(pattern, token: cancellationToken).ConfigureAwait(false);
+            return await this.Cache.FindKeysAsync(pattern, token: token).ConfigureAwait(false);
         }
-
 
         /// <summary>
         /// Removes all the keys.
         /// </summary>
         /// <param name="keys">Contains the keys to remove.</param>
-        public void RemoveRange(string[] keys)
+        /// <returns>Returns the number of keys deleted.</returns>
+        public long RemoveRange(string[] keys)
         {
+            long keysDeleted = 0;
+
             if (keys != null)
             {
                 this.Connect();
@@ -384,20 +382,24 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
                 if (redisKeys.Length > 0)
                 {
-                    this.Cache.KeyDelete(redisKeys);
+                    keysDeleted = this.Cache.KeyDelete(redisKeys);
                 }
             }
+
+            return keysDeleted;
         }
 
         /// <summary>
         /// Removes all the keys.
         /// </summary>
         /// <param name="keys">Contains the keys to remove.</param>
-        public async Task RemoveRangeAsync(string[] keys)
+        /// <param name="token">Contains an optional cancellation token.</param>
+        public async Task<long> RemoveRangeAsync(string[] keys, CancellationToken token = default)
         {
+            long keysDeleted = 0;
             if (keys != null)
             {
-                await this.ConnectAsync().ConfigureAwait(false);
+                await this.ConnectAsync(token).ConfigureAwait(false);
 
                 RedisKey[] redisKeys = new RedisKey[keys.Count()];
                 int i = 0;
@@ -406,18 +408,21 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                     redisKeys[i++] = new RedisKey(key);
                 }
 
+                token.ThrowIfCancellationRequested();
+
                 if (redisKeys.Length > 0)
                 {
-                    await this.Cache.KeyDeleteAsync(redisKeys);
+                    keysDeleted = await this.Cache.KeyDeleteAsync(redisKeys);
                 }
             }
+            return keysDeleted;
         }
 
         /// <summary>
         /// Removes the value with the given key.
         /// </summary>
         /// <param name="pattern">A string identifying the requested value.</param>
-        public void RemovePattern(string pattern)
+        public long RemovePattern(string pattern)
         {
             if (pattern == null)
             {
@@ -428,27 +433,27 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             var keys = this.Cache.FindKeys(pattern);
 
-            this.RemoveRange(keys.ToArray());
+            return this.RemoveRange(keys.ToArray());
         }
 
         /// <summary>
         /// Removes the value with the given key.
         /// </summary>
         /// <param name="pattern">A string identifying the requested value.</param>
-        /// <param name="cancellationToken">Optional. The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+        /// <param name="token">Optional. The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
         /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public async Task RemovePatternAsync(string pattern, CancellationToken cancellationToken = default)
+        public async Task<long> RemovePatternAsync(string pattern, CancellationToken token = default)
         {
             if (pattern == null)
             {
                 throw new ArgumentNullException(nameof(pattern));
             }
 
-            await this.ConnectAsync();
+            await this.ConnectAsync(token);
 
-            var keys = await this.Cache.FindKeysAsync(pattern);
+            var keys = await this.Cache.FindKeysAsync(pattern, token: token);
 
-            await this.RemoveRangeAsync(keys.ToArray());
+            return await this.RemoveRangeAsync(keys.ToArray(), token);
         }
 
         /// <summary>
@@ -456,8 +461,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a string representation of the value.</returns>
-        public async Task<string> HashGetAsync(string hashKey, string fieldName)
+        public async Task<string?> HashGetAsync(string hashKey, string fieldName, CancellationToken token = default)
         {
             if (hashKey == null)
             {
@@ -471,7 +477,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             string? result = null;
 
-            await this.ConnectAsync();
+            await this.ConnectAsync(token);
+
+            token.ThrowIfCancellationRequested();
 
             RedisValue redisValue = await this.Cache.HashGetAsync(hashKey, fieldName);
 
@@ -488,8 +496,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating whether the field exists.</returns>
-        public async Task<bool> HashFieldExistsAsync(string hashKey, string fieldName)
+        public async Task<bool> HashFieldExistsAsync(string hashKey, string fieldName, CancellationToken token = default)
         {
             if (hashKey == null)
             {
@@ -501,9 +510,31 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 throw new ArgumentNullException(nameof(fieldName));
             }
             
-            await this.ConnectAsync();
-            
+            await this.ConnectAsync(token);
+            token.ThrowIfCancellationRequested();
             return await this.Cache.HashExistsAsync(hashKey, fieldName);
+        }
+
+        /// <summary>
+        /// This method is used to delete a field from the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <exception cref="ArgumentNullException">Thrown if parameter are null.</exception>
+        public async Task<bool> HashRemoveAsync(string hashKey, string fieldName, CancellationToken token = default)
+        {
+            if (string.IsNullOrEmpty(hashKey))
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            if (string.IsNullOrEmpty(fieldName))
+            {
+                throw new ArgumentNullException(nameof(fieldName));
+            }
+            await this.ConnectAsync(token);
+            token.ThrowIfCancellationRequested();
+            return await this.Cache.HashDeleteAsync(hashKey, fieldName);
         }
 
         /// <summary>
@@ -512,8 +543,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value key.</param>
         /// <param name="value">Contains the value.</param>
-        /// <returns>Returns teh value set.</returns>
-        public async Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null)
+        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        public async Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null, CancellationToken token = default)
         {
             if (hashKey == null)
             {
@@ -530,12 +562,14 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 expiration = TimeSpan.FromHours(1);
             }
 
-            await this.ConnectAsync();
+            await this.ConnectAsync(token);
+            token.ThrowIfCancellationRequested();
             bool result = await this.Cache.HashSetAsync(hashKey, fieldName, value);
             
             // if this was new, set the expiration
             if (result)
             {
+                token.ThrowIfCancellationRequested();
                 await this.Cache.KeyExpireAsync(hashKey, expiration);
             }
 
@@ -549,8 +583,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to increment by.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns the incremented value.</returns>
-        public async Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
+        public async Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null, CancellationToken token = default)
         {
             if (hashKey == null)
             {
@@ -562,13 +597,13 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 throw new ArgumentNullException(nameof(fieldName));
             }
 
-            await this.ConnectAsync();
-
+            await this.ConnectAsync(token);
+            token.ThrowIfCancellationRequested();
             var result = await this.Cache.HashIncrementAsync(hashKey, fieldName, value);
 
             if (expiration.HasValue)
             {
-                await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
+                await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value, token);
             }
 
             return result;
@@ -581,8 +616,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to decrement by.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns the decremented value.</returns>
-        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
+        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null, CancellationToken token = default)
         {
             if (hashKey == null)
             {
@@ -594,13 +630,13 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 throw new ArgumentNullException(nameof(fieldName));
             }
 
-            await this.ConnectAsync();
-
+            await this.ConnectAsync(token);
+            token.ThrowIfCancellationRequested();
             var result = await this.Cache.HashDecrementAsync(hashKey, fieldName, value);
 
             if (expiration.HasValue)
             {
-                await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value);
+                await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value, token);
             }
 
             return result;
@@ -610,16 +646,17 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// This method is used to get all values in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a dictionary of field and values.</returns>
-        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey)
+        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default)
         {
             if (hashKey == null)
             {
                 throw new ArgumentNullException(nameof(hashKey));
             }
-            await this.ConnectAsync();
+            await this.ConnectAsync(token);
             Dictionary<string, string> result = new Dictionary<string, string>();
-
+            token.ThrowIfCancellationRequested();
             HashEntry[] entries = await this.Cache.HashGetAllAsync(hashKey);
 
             if (entries != null && entries.Length > 0)
@@ -635,14 +672,16 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// </summary>
         /// <param name="hashKey">Contains the key to expire.</param>
         /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating success.</returns>
-        public async Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration)
+        public async Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration, CancellationToken token = default)
         {
             if (hashKey == null)
             {
                 throw new ArgumentNullException(nameof(hashKey));
             }
-            await this.ConnectAsync();
+            await this.ConnectAsync(token);
+            token.ThrowIfCancellationRequested();
             return await this.Cache.KeyExpireAsync(hashKey, expiration);
         }
 
@@ -650,11 +689,12 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// This method is used to set a field expiration.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
-        /// <param name="fieldName">Contains the field name.</param>
+        /// <param name="fieldNames">Contains the field names to expire.</param>
         /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating success.</returns>
         /// <exception cref="NotSupportedException">HashFieldExpireAsync is not supported on Redis versions less than 7.2.</exception>"
-        public async Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration)
+        public async Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration, CancellationToken token = default)
         {
             if (hashKey == null)
             {
@@ -669,19 +709,19 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
 
             if (this.options.MinimumServerCommands == RedisMinimumServerCommands.SevenTwo)
             {
-                await this.ConnectAsync();
+                await this.ConnectAsync(token);
                 RedisValue[] redisFieldNames = new RedisValue[fieldNames.Length];
                 for (int i = 0; i < fieldNames.Length; i++)
                 {
                     redisFieldNames[i] = fieldNames[i];
                 }
-
+                token.ThrowIfCancellationRequested();
                 var results = await this.Cache.HashFieldExpireAsync(hashKey, redisFieldNames, expiration);
                 result = results?.Length > 0 && results[0] > 0;
             }
             else
             {
-                await this.KeyExpireAsync(hashKey, expiration);
+                result = await this.KeyExpireAsync(hashKey, expiration, token);
             }
 
             return result;
@@ -804,17 +844,17 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <summary>
         /// This method is used to create the cache connection.
         /// </summary>
-        /// <param name="token">Contains an optional token.</param>
+        /// <param name="cancellationToken">Contains an optional token.</param>
         /// <returns>Returns a task.</returns>
-        private async Task ConnectAsync(CancellationToken token = default)
+        private async Task ConnectAsync(CancellationToken cancellationToken = default)
         {
-            token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             // if cache is not connected...
             if (this.cache == null)
             {
                 // lock connection
-                await this.connectionLock.WaitAsync(token);
+                await this.connectionLock.WaitAsync(cancellationToken);
 
                 try
                 {
@@ -827,6 +867,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                         this.connection = await ConnectionMultiplexer.ConnectAsync(this.options.Configuration);
                     }
 
+                    cancellationToken.ThrowIfCancellationRequested();
                     this.cache = this.connection.GetDatabase();
                 }
                 finally
@@ -882,18 +923,18 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// </summary>
         /// <param name="key">Contains the key to find.</param>
         /// <param name="getData">Contains a value indicating whether the data is to be returned.</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <param name="cancellationToken">Contains an optional cancellation token.</param>
         /// <returns>Returns a byte array of the data found.</returns>
-        private async Task<byte[]> GetAndRefreshAsync(string key, bool getData, CancellationToken token = default)
+        private async Task<byte[]> GetAndRefreshAsync(string key, bool getData, CancellationToken cancellationToken = default)
         {
             if (key == null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            await this.ConnectAsync(token);
+            await this.ConnectAsync(cancellationToken);
 
             // This also resets the LRU status as desired.
             RedisValue[] results;
@@ -910,7 +951,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             if (results.Length >= 2)
             {
                 this.MapMetadata(results, out DateTimeOffset? absExpr, out TimeSpan? sldExpr);
-                await this.RefreshAsync(key, absExpr, sldExpr, token);
+                await this.RefreshAsync(key, absExpr, sldExpr, cancellationToken);
             }
 
             if (results.Length >= 3 && results[2].HasValue)
@@ -974,7 +1015,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                     expiration = slidingExpiration;
                 }
 
-                this.cache.KeyExpire(this.instance + key, expiration);
+                this.Cache.KeyExpire(this.instance + key, expiration);
             }
         }
 
@@ -984,16 +1025,16 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="key">Contains the key to refresh.</param>
         /// <param name="absoluteExpiration">Contains the absolute expiration date.</param>
         /// <param name="slidingExpiration">Contains the sliding expiration date.</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <param name="cancellationToken">Contains an optional cancellation token.</param>
         /// <returns>Returns a task.</returns>
-        private async Task RefreshAsync(string key, DateTimeOffset? absoluteExpiration, TimeSpan? slidingExpiration, CancellationToken token = default)
+        private async Task RefreshAsync(string key, DateTimeOffset? absoluteExpiration, TimeSpan? slidingExpiration, CancellationToken cancellationToken = default)
         {
             if (key == null)
             {
                 throw new ArgumentNullException(nameof(key));
             }
 
-            token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (slidingExpiration.HasValue)
             {
@@ -1010,7 +1051,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                     expiration = slidingExpiration;
                 }
 
-                await this.cache.KeyExpireAsync(this.instance + key, expiration);
+                await this.Cache.KeyExpireAsync(this.instance + key, expiration);
             }
         }
 

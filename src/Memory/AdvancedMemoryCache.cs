@@ -131,10 +131,16 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// This method is used to remove all keys that match the specified pattern.
         /// </summary>
         /// <param name="pattern">Contains a pattern to find and remove.</param>
-        public void RemovePattern(string pattern)
+        /// <returns>Returns the number of keys removed.</returns>
+        public long RemovePattern(string pattern)
         {
+            if (string.IsNullOrWhiteSpace(pattern))
+            {
+                throw new ArgumentNullException(nameof(pattern));
+            }
+            // Find all keys that match the pattern and remove them
             var keys = this.FindKeys(pattern);
-            this.RemoveRange(keys.ToArray());
+            return this.RemoveRange(keys.ToArray());
         }
 
         /// <summary>
@@ -142,32 +148,35 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// </summary>
         /// <param name="pattern">Contains a pattern to find and remove.</param>
         /// <param name="cancellationToken">Contains a cancellation token.</param>
-        /// <returns>Returns a task.</returns>
-        public async Task RemovePatternAsync(string pattern, CancellationToken cancellationToken = default)
+        /// <returns>Returns the number of keys removed.</returns>
+        public async Task<long> RemovePatternAsync(string pattern, CancellationToken token = default)
         {
-            await Task.Run(() => this.RemovePattern(pattern));
+            return await Task.Run(() => this.RemovePattern(pattern), token);
         }
 
         /// <summary>
         /// This method is used to remove a range of keys.
         /// </summary>
         /// <param name="keys">Contains the keys to remove.</param>
-        public void RemoveRange(string[] keys)
+        public long RemoveRange(string[] keys)
         {
+            long removedCount = keys.Length;
             foreach (var key in keys)
             {
                 this.Remove(key);
             }
+            return removedCount;
         }
 
         /// <summary>
         /// This method is used to remove a range of keys asynchronously.
         /// </summary>
         /// <param name="keys">Contains the keys to remove.</param>
-        /// <returns>Returns a task.</returns>
-        public async Task RemoveRangeAsync(string[] keys)
+        /// <param name="token">Contains a cancellation token.</param>
+        /// <returns>Returns the number of keys removed.</returns>
+        public async Task<long> RemoveRangeAsync(string[] keys, CancellationToken token = default)
         {
-            await Task.Run(() => this.RemoveRange(keys));
+            return await Task.Run(() => this.RemoveRange(keys), token);
         }
 
         /// <summary>
@@ -200,8 +209,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating whether the field exists.</returns>
-        public async Task<bool> HashFieldExistsAsync(string hashKey, string fieldName)
+        public async Task<bool> HashFieldExistsAsync(string hashKey, string fieldName, CancellationToken token = default)
         {
             if (hashKey == null)
             {
@@ -229,8 +239,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a string representation of the value.</returns>
-        public async Task<string> HashGetAsync(string hashKey, string fieldName)
+        public async Task<string?> HashGetAsync(string hashKey, string fieldName, CancellationToken token = default)
         {
             string result = string.Empty;
             if (memoryDictionary.ContainsKey(hashKey))
@@ -245,14 +256,34 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         }
 
         /// <summary>
+        /// This method is used to delete a field from the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <exception cref="ArgumentNullException">Thrown if parameter are null.</exception>
+        public async Task<bool> HashRemoveAsync(string hashKey, string fieldName, CancellationToken token = default)
+        {
+            bool result = memoryDictionary.ContainsKey(hashKey) && memoryDictionary[hashKey].Contains(fieldName);
+            
+            if (result)
+            {
+                memoryDictionary.TryRemove(hashKey, out _); // Remove the hash key if it exists
+            }
+            
+            return await Task.FromResult(result);
+        }
+
+        /// <summary>
         /// This method is used to set a value in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns teh value set.</returns>
-        public async Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null)
+        public async Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null, CancellationToken token = default)
         {
             bool result = false;
             
@@ -273,11 +304,12 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// This method is used to increment a value in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
-        /// <param name="field Name">Contains the value field Name.</param>
+        /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to increment by.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns the incremented value.</returns>
-        public Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
+        public Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null, CancellationToken token = default)
         {
             long result = 0;
             if (memoryDictionary.ContainsKey(hashKey))
@@ -300,8 +332,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to decrement by.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns the decremented value.</returns>
-        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null)
+        public async Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null, CancellationToken token = default)
         {
             long result = 0;
             if (memoryDictionary.ContainsKey(hashKey))
@@ -321,8 +354,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// This method is used to get all values in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a dictionary of field and values.</returns>
-        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey)
+        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
             if (memoryDictionary.ContainsKey(hashKey))
@@ -338,8 +372,9 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// </summary>
         /// <param name="hashKey">Contains the key to expire.</param>
         /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating success.</returns>
-        public async Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration)
+        public async Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration, CancellationToken token = default)
         {
             bool result = false;
             if (memoryDictionary.ContainsKey(hashKey))
@@ -354,12 +389,22 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// This method is used to set a field expiration.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
-        /// <param name="fieldName">Contains the field name.</param>
+        /// <param name="fieldNames">Contains the field names.</param>
         /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <param name="token"
         /// <returns>Returns a value indicating success.</returns>
-        public async Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration)
+        public async Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration, CancellationToken token = default)
         {
             bool result = false;
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            if (fieldNames == null || fieldNames.Length == 0)
+            {
+                throw new ArgumentNullException(nameof(fieldNames));
+            }
+
             if (memoryDictionary.ContainsKey(hashKey))
             {
                 string hashValue = memoryDictionary[hashKey];

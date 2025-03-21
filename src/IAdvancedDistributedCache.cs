@@ -38,51 +38,56 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// This method is used to find one or more cache keys that match a specified pattern.
         /// </summary>
         /// <param name="pattern">Contains the key search pattern.</param>
-        /// <param name="cancellationToken">Contains an optional cancellation token.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns an enumerable list of key names matching the pattern.</returns>
-        Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken cancellationToken = default);
+        Task<IEnumerable<string>> FindKeysAsync(string pattern, CancellationToken token = default);
 
         /// <summary>
         /// Removes all the keys.
         /// </summary>
         /// <param name="keys">Contains the keys to remove.</param>
-        void RemoveRange(string[] keys);
+        /// <returns>Returns the number of keys removed.</returns>
+        long RemoveRange(string[] keys);
 
         /// <summary>
         /// Removes all the keys.
         /// </summary>
         /// <param name="keys">Contains the keys to remove.</param>
-        Task RemoveRangeAsync(string[] keys);
+        /// <returns>Returns the number of keys removed.</returns>
+        Task<long> RemoveRangeAsync(string[] keys, CancellationToken token = default);
 
         /// <summary>
         /// Removes the value with the given key.
         /// </summary>
         /// <param name="pattern">A string identifying the requested value.</param>
-        void RemovePattern(string pattern);
+        /// <returns>Returns the number of keys removed.</returns>
+        long RemovePattern(string pattern);
 
         /// <summary>
         /// Removes the value with the given key.
         /// </summary>
         /// <param name="pattern">A string identifying the requested value.</param>
-        /// <param name="cancellationToken">Optional. The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
-        /// <returns>The <see cref="Task"/> that represents the asynchronous operation.</returns>
-        Task RemovePatternAsync(string pattern, CancellationToken cancellationToken = default);
+        /// <param name="token">Optional. The <see cref="CancellationToken"/> used to propagate notifications that the operation should be canceled.</param>
+        /// <returns>Returns the number of keys removed.</returns>
+        Task<long> RemovePatternAsync(string pattern, CancellationToken token = default);
 
         /// <summary>
         /// This method is used to check if a field exists in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating whether the field exists.</returns>
-        Task<bool> HashFieldExistsAsync(string hashKey, string fieldName);
+        Task<bool> HashFieldExistsAsync(string hashKey, string fieldName, CancellationToken token = default);
 
         /// <summary>
         /// This method is used to get a value in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldName">Contains the value field Name.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a string representation of the value.</returns>
-        Task<string> HashGetAsync(string hashKey, string fieldName);
+        Task<string?> HashGetAsync(string hashKey, string fieldName, CancellationToken token = default);
 
         /// <summary>
         /// This method is used to set a value in the cache hash bucket.
@@ -91,8 +96,17 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
-        /// <returns>Returns teh value set.</returns>
-        Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null);
+        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <returns>Returns a value indicating success.</returns>
+        Task<bool> HashSetAsync(string hashKey, string fieldName, string value, TimeSpan? expiration = null, CancellationToken token = default);
+
+        /// <summary>
+        /// This method is used to delete a field from the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key.</param>
+        /// <param name="fieldName">Contains the value fieldName.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
+        Task<bool> HashRemoveAsync(string hashKey, string fieldName, CancellationToken token = default);
 
         /// <summary>
         /// This method is used to increment a value in the cache hash bucket.
@@ -101,8 +115,9 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to increment by.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns the incremented value.</returns>
-        Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null);
+        Task<long> HashIncrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null, CancellationToken token = default);
 
         /// <summary>
         /// This method is used to decrement a value in the cache hash bucket.
@@ -111,23 +126,27 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="fieldName">Contains the value field Name.</param>
         /// <param name="value">Contains the value to decrement by.</param>
         /// <param name="expiration">Contains an optional expiration time.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns the decremented value.</returns>
-        Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null);
+        Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null, CancellationToken token = default);
 
         /// <summary>
         /// This method is used to get all values in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a dictionary of field and values.</returns>
-        Task<Dictionary<string, string>> HashGetAllAsync(string hashKey);
+        Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default);
+
 
         /// <summary>
         /// This method is used to set a key expiration.
         /// </summary>
         /// <param name="hashKey">Contains the key to expire.</param>
         /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating success.</returns>
-        Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration);
+        Task<bool> KeyExpireAsync(string hashKey, TimeSpan expiration, CancellationToken token = default);
 
         /// <summary>
         /// This method is used to set a field expiration.
@@ -135,7 +154,8 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="hashKey">Contains the hash key.</param>
         /// <param name="fieldNames">Contains an array of field names to set expiration.</param>
         /// <param name="expiration">Contains the timespan for expiration.</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating success.</returns>
-        Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration);
+        Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration, CancellationToken token = default);
     }
 }
