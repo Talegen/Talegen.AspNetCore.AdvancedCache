@@ -6,7 +6,7 @@
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Talegen ASP.net Core Advanced Cache Library</Title>
-    <Version>1.0.19</Version>
+    <Version>1.0.20</Version>
     <Authors>Talegen, LLC</Authors>
     <Description>A simple advanced IDistributedCache extension implementing Redis cache client.</Description>
     <Copyright>Copyright (c) Talegen, LLC.</Copyright>
@@ -27,11 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="StackExchange.Redis" Version="2.11.3" />
   </ItemGroup>
 
   <ItemGroup>

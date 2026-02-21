@@ -256,6 +256,25 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         }
 
         /// <summary>
+        /// This method is used to get all values in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <returns>Returns a dictionary of field and values.</returns>
+        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default)
+        {
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            
+            if (memoryDictionary.ContainsKey(hashKey))
+            {
+                string hashValue = memoryDictionary[hashKey];
+                result.Add(hashKey, hashValue);
+            }
+            
+            return await Task.FromResult(result);
+        }
+
+        /// <summary>
         /// This method is used to delete a field from the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
@@ -346,23 +365,6 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
                     result -= value;
                     memoryDictionary[hashKey] = result.ToString();
                 }
-            }
-            return await Task.FromResult(result);
-        }
-
-        /// <summary>
-        /// This method is used to get all values in the cache hash bucket.
-        /// </summary>
-        /// <param name="hashKey">Contains the hash key</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
-        /// <returns>Returns a dictionary of field and values.</returns>
-        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default)
-        {
-            Dictionary<string, string> result = new Dictionary<string, string>();
-            if (memoryDictionary.ContainsKey(hashKey))
-            {
-                string hashValue = memoryDictionary[hashKey];
-                result.Add(hashKey, hashValue);
             }
             return await Task.FromResult(result);
         }

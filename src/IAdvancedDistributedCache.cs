@@ -90,6 +90,14 @@ namespace Talegen.AspNetCore.AdvancedCache
         Task<string?> HashGetAsync(string hashKey, string fieldName, CancellationToken token = default);
 
         /// <summary>
+        /// This method is used to get all values in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the hash key</param>
+        /// <param name="token">Contains an optional cancellation token.</param>
+        /// <returns>Returns a dictionary of field and values.</returns>
+        Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default);
+
+        /// <summary>
         /// This method is used to set a value in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
@@ -129,14 +137,6 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns the decremented value.</returns>
         Task<long> HashDecrementAsync(string hashKey, string fieldName, long value = 1, TimeSpan? expiration = null, CancellationToken token = default);
-
-        /// <summary>
-        /// This method is used to get all values in the cache hash bucket.
-        /// </summary>
-        /// <param name="hashKey">Contains the hash key</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
-        /// <returns>Returns a dictionary of field and values.</returns>
-        Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default);
 
 
         /// <summary>

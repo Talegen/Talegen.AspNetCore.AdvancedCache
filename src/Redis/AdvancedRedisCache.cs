@@ -492,6 +492,25 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         }
 
         /// <summary>
+        /// This method is used to get all values in the cache hash bucket.
+        /// </summary>
+        /// <param name="hashKey">Contains the cache hash bucket</param>
+        /// <param name="token">Contains a cancellation token.</param>
+        /// <returns>Returns a dictionary of field name and value.</returns>
+        /// <exception cref="ArgumentNullException">thrown if hash key null.</exception>
+        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default)
+        {
+            if (hashKey == null)
+            {
+                throw new ArgumentNullException(nameof(hashKey));
+            }
+            await this.ConnectAsync(token);
+            token.ThrowIfCancellationRequested();
+            var result = await this.Cache.HashGetAllAsync(hashKey);
+            return result.ToDictionary(e => e.Name.ToString(), e => e.Value.ToString());
+        }
+
+        /// <summary>
         /// This method is used to check if a field exists in the cache hash bucket.
         /// </summary>
         /// <param name="hashKey">Contains the hash key.</param>
@@ -639,31 +658,6 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
                 await this.HashFieldsExpireAsync(hashKey, new string[] { fieldName }, expiration.Value, token);
             }
 
-            return result;
-        }
-
-        /// <summary>
-        /// This method is used to get all values in the cache hash bucket.
-        /// </summary>
-        /// <param name="hashKey">Contains the hash key</param>
-        /// <param name="token">Contains an optional cancellation token.</param>
-        /// <returns>Returns a dictionary of field and values.</returns>
-        public async Task<Dictionary<string, string>> HashGetAllAsync(string hashKey, CancellationToken token = default)
-        {
-            if (hashKey == null)
-            {
-                throw new ArgumentNullException(nameof(hashKey));
-            }
-            await this.ConnectAsync(token);
-            Dictionary<string, string> result = new Dictionary<string, string>();
-            token.ThrowIfCancellationRequested();
-            HashEntry[] entries = await this.Cache.HashGetAllAsync(hashKey);
-
-            if (entries != null && entries.Length > 0)
-            {
-                result = entries.ToDictionary(e => e.Name.ToString(), e => e.Value.ToString());
-            }
-            
             return result;
         }
 
