@@ -23,6 +23,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
     using System.Threading.Tasks;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Options;
+    using Newtonsoft.Json.Linq;
     using StackExchange.Redis;
 
     /// <summary>
@@ -740,8 +741,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
             await this.ConnectAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await this.Cache.ExecuteAsync("SET", this.instance + key, "1", "NX", "PX", (long)expirationTime.TotalMilliseconds);
-            return result.ToString() == "OK";
+            return await this.Cache.StringSetAsync(this.instance + key, "1", expirationTime, When.NotExists);
         }
         #endregion
 
