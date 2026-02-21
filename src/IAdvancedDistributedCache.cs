@@ -157,5 +157,18 @@ namespace Talegen.AspNetCore.AdvancedCache
         /// <param name="token">Contains an optional cancellation token.</param>
         /// <returns>Returns a value indicating success.</returns>
         Task<bool> HashFieldsExpireAsync(string hashKey, string[] fieldNames, TimeSpan expiration, CancellationToken token = default);
+
+        /// <summary>
+        /// Attempts to acquire a distributed lock for the specified key with a given expiration time.
+        /// </summary>
+        /// <remarks>If the lock is already held by another process, the method returns <see
+        /// langword="false"/> immediately without waiting. The lock will be automatically released after the specified
+        /// expiration time if not released earlier.</remarks>
+        /// <param name="key">The unique identifier for the lock to acquire. Cannot be null or empty.</param>
+        /// <param name="expirationTime">The duration for which the lock will be held before it expires automatically.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the lock acquisition operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the lock was
+        /// successfully acquired; otherwise, <see langword="false"/>.</returns>
+        Task<bool> LockAsync(string key, TimeSpan expirationTime, CancellationToken cancellationToken = default);
     }
 }

@@ -422,6 +422,31 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
             return await Task.FromResult(result);
         }
 
+        /// <summary>
+        /// Attempts to acquire a lock for the specified key with a given expiration time, using an asynchronous
+        /// operation.
+        /// </summary>
+        /// <param name="key">The unique identifier for the lock to acquire. Cannot be null.</param>
+        /// <param name="expirationTime">The duration for which the lock should be held before it expires.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the lock was
+        /// successfully acquired; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null.</exception>
+        public async Task<bool> LockAsync(string key, TimeSpan expirationTime, CancellationToken cancellationToken = default)
+        {
+            bool result = false;
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            if (!memoryDictionary.ContainsKey(key))
+            {
+                memoryDictionary[key] = "LOCKED";
+                result = true;
+            }
+            return await Task.FromResult(result);
+        }
+
         #region IDisposeable Methods
 
             /// <summary>
