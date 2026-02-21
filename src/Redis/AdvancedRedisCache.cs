@@ -730,10 +730,11 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// expiration time if not released earlier.</remarks>
         /// <param name="key">The unique identifier for the lock to acquire. Cannot be null or empty.</param>
         /// <param name="expirationTime">The duration for which the lock will be held before it expires automatically.</param>
+        /// <param name="value">An optional value to associate with the lock. If not provided, a timestamp will be used as the value.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the lock acquisition operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the lock was
         /// successfully acquired; otherwise, <see langword="false"/>.</returns>
-        public async Task<bool> LockAsync(string key, TimeSpan expirationTime, CancellationToken cancellationToken = default)
+        public async Task<bool> LockAsync(string key, TimeSpan expirationTime, string? value = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -741,7 +742,8 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
             }
             await this.ConnectAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            return await this.Cache.StringSetAsync(this.instance + key, "1", expirationTime, When.NotExists);
+            var storeValue = value != null ? value : DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            return await this.Cache.StringSetAsync(this.instance + key, storeValue, expirationTime, When.NotExists);
         }
         #endregion
 
