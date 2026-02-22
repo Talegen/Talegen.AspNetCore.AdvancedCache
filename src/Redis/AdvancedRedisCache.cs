@@ -734,7 +734,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Redis
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the lock acquisition operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the lock was
         /// successfully acquired; otherwise, <see langword="false"/>.</returns>
-        public async Task<bool> LockAsync(string key, TimeSpan expirationTime, string? value = null, CancellationToken cancellationToken = default)
+        public async Task<bool> TryAcquireLockAsync(string key, TimeSpan expirationTime, string? value = null, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(key))
             {

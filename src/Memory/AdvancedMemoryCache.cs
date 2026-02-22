@@ -433,7 +433,7 @@ namespace Talegen.AspNetCore.AdvancedCache.Memory
         /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the lock was
         /// successfully acquired; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/> is null.</exception>
-        public async Task<bool> LockAsync(string key, TimeSpan expirationTime, string? value = null, CancellationToken cancellationToken = default)
+        public async Task<bool> TryAcquireLockAsync(string key, TimeSpan expirationTime, string? value = null, CancellationToken cancellationToken = default)
         {
             bool result = false;
             if (key == null)
